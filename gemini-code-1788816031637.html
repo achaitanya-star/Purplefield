@@ -1,0 +1,1865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iMigrate Config Studio - Enterprise SAP Migration Engine</title>
+    <style>
+        :root {
+            --bg-dark: #1b262c;
+            --bg-card: #222831;
+            --bg-light: #393e46;
+            --accent-cyan: #00b4d8;
+            --accent-blue: #0f4c81;
+            --text-light: #eceff1;
+            --text-muted: #90a4ae;
+            --border-color: #455a64;
+            --success-green: #2ecc71;
+            --warning-orange: #e67e22;
+            --danger-red: #e74c3c;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* App Header */
+        header {
+            background: linear-gradient(90deg, #0b2545, #134074);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--accent-cyan);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            z-index: 10;
+        }
+
+        .brand-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+        }
+
+        .brand-title span.logo {
+            color: var(--accent-cyan);
+            font-size: 1.5rem;
+        }
+
+        .pipeline-nav {
+            display: flex;
+            gap: 6px;
+            background: rgba(0,0,0,0.25);
+            padding: 4px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+
+        .nav-btn {
+            background: transparent;
+            color: var(--text-muted);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .nav-btn.active {
+            background: var(--accent-cyan);
+            color: #000;
+            box-shadow: 0 0 10px rgba(0, 180, 216, 0.4);
+        }
+
+        .nav-btn.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Tenant & Filter Bar */
+        .tenant-filter-bar {
+            background: var(--bg-card);
+            padding: 10px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            font-size: 0.85rem;
+        }
+
+        .filter-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-control label {
+            color: var(--accent-cyan);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        select, input[type="text"] {
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            color: var(--text-light);
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            outline: none;
+            transition: border 0.2s;
+        }
+
+        select:focus, input[type="text"]:focus {
+            border-color: var(--accent-cyan);
+        }
+
+        .session-badge {
+            margin-left: auto;
+            background: rgba(0, 180, 216, 0.15);
+            border: 1px solid var(--accent-cyan);
+            color: var(--accent-cyan);
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.8rem;
+        }
+
+        /* Workspace Views */
+        .workspace-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bucket-view {
+            display: none;
+            width: 100%;
+            height: 100%;
+            padding: 16px;
+            gap: 16px;
+        }
+
+        .bucket-view.active {
+            display: flex;
+        }
+
+        /* Panel Cards */
+        .panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .panel-header {
+            background: rgba(255, 255, 255, 0.04);
+            padding: 10px 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--accent-cyan);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-body {
+            padding: 16px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        /* Buttons */
+        .btn {
+            background: var(--accent-blue);
+            color: #fff;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: background 0.2s, transform 0.1s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            background: var(--accent-cyan);
+            color: #000;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-success { background: var(--success-green); color: #000; }
+        .btn-success:hover { background: #27ae60; color: #fff; }
+
+        .btn-warning { background: var(--warning-orange); color: #000; }
+        .btn-warning:hover { background: #d35400; color: #fff; }
+
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            background: var(--bg-light);
+            color: var(--text-muted);
+        }
+
+        /* Tree View Styling */
+        .tree-root {
+            list-style: none;
+            font-size: 0.85rem;
+        }
+
+        .tree-node {
+            margin: 3px 0;
+        }
+
+        .node-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.15s;
+        }
+
+        .node-row:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .node-row.selected {
+            background: rgba(0, 180, 216, 0.18);
+            border-left: 3px solid var(--accent-cyan);
+        }
+
+        .tree-children {
+            margin-left: 18px;
+            padding-left: 8px;
+            border-left: 1px dashed var(--border-color);
+            display: none;
+        }
+
+        .tree-children.expanded {
+            display: block;
+        }
+
+        .badge {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+            background: var(--bg-light);
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .badge-l {
+            background: #2c3e50;
+            color: var(--accent-cyan);
+            border: 1px solid rgba(0, 180, 216, 0.3);
+        }
+
+        .badge-tbl {
+            background: rgba(46, 204, 113, 0.15);
+            color: var(--success-green);
+            border: 1px solid var(--success-green);
+        }
+
+        /* Data Tables */
+        table.data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            text-align: left;
+        }
+
+        table.data-table th, table.data-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        table.data-table th {
+            background: rgba(0,0,0,0.3);
+            color: var(--accent-cyan);
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+
+        table.data-table tr:hover {
+            background: rgba(255,255,255,0.03);
+        }
+
+        /* Modal Dialog */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.75);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(2px);
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            width: 480px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+        }
+
+        .modal-header {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--accent-cyan);
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        /* Terminal Console */
+        .terminal-container {
+            background: #000;
+            border: 1px solid #113311;
+            border-radius: 6px;
+            padding: 12px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 0.8rem;
+            color: #00ff66;
+            height: 180px;
+            overflow-y: auto;
+        }
+
+        .terminal-line {
+            margin-bottom: 4px;
+            line-height: 1.4;
+        }
+
+        .terminal-time {
+            color: #666;
+        }
+
+        /* Code Viewer */
+        pre.code-view {
+            background: #111;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            color: #e6e6e6;
+            font-size: 0.8rem;
+            height: 280px;
+            overflow: auto;
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- APP HEADER -->
+    <header>
+        <div class="brand-title">
+            <span class="logo">⚡</span> iMigrate Config Studio
+        </div>
+        <div class="pipeline-nav">
+            <button class="nav-btn active" id="nav-bronze" onclick="switchBucket('bronze')">
+                <span>1. Bronze</span> (Extract & Selection)
+            </button>
+            <button class="nav-btn disabled" id="nav-silver" onclick="switchBucket('silver')">
+                <span>2. Silver</span> (STTM & Copy Engine)
+            </button>
+            <button class="nav-btn disabled" id="nav-gold" onclick="switchBucket('gold')">
+                <span>3. Gold</span> (Packaging & Deployment)
+            </button>
+        </div>
+    </header>
+
+    <!-- MULTI-TENANCY & FILTER HEADER -->
+    <div class="tenant-filter-bar">
+        <div class="filter-control">
+            <label>Tenant ID (Company):</label>
+            <select id="sel-tenant" onchange="handleSessionUpdate()">
+                <option value="TENANT_ACME">ACME Corp (TENANT_ACME)</option>
+                <option value="TENANT_GLOBAL">Global Retail (TENANT_GLOBAL)</option>
+                <option value="TENANT_APAC">APAC Enterprise (TENANT_APAC)</option>
+            </select>
+        </div>
+
+        <div class="filter-control">
+            <label>Company Code:</label>
+            <select id="sel-cocode" onchange="handleSessionUpdate()">
+                <option value="1000">1000 - US East Coast</option>
+                <option value="2000">2000 - DE HQ Ops</option>
+                <option value="3000">3000 - JP Distribution</option>
+            </select>
+        </div>
+
+        <div class="filter-control" style="flex: 1; max-width: 380px; margin-left: 10px;">
+            <label>Process Search Filter:</label>
+            <input type="text" id="dir-search" placeholder="Search level L1-L6, process or table (e.g. T024W, T683S, release, valuation)..." onkeyup="filterProcessDirectory()">
+        </div>
+
+        <div class="session-badge" id="session-tag">SESS_INIT</div>
+    </div>
+
+    <!-- MAIN WORKSPACE CONTAINERS -->
+    <div class="workspace-container">
+
+        <!-- ================= 1. BRONZE BUCKET ================= -->
+        <div id="view-bronze" class="bucket-view active">
+            <!-- Left: Process Tree View -->
+            <div class="panel" style="width: 40%;">
+                <div class="panel-header">
+                    <span>L1 - L6 Process Directory Tree</span>
+                    <button class="btn" style="padding: 2px 8px; font-size: 0.75rem;" onclick="expandAllTree()">Expand All</button>
+                </div>
+                <div class="panel-body">
+                    <ul class="tree-root" id="process-tree-root"></ul>
+                </div>
+            </div>
+
+            <!-- Right: Config T-Tables Selector Grid -->
+            <div class="panel" style="width: 60%;">
+                <div class="panel-header">
+                    <span id="bronze-table-header">Associated Config T-Tables</span>
+                    <button class="btn btn-success" id="btn-promote-silver" onclick="promoteToSilver()" disabled>
+                        Promote Chunk to Silver ➔
+                    </button>
+                </div>
+                <div class="panel-body">
+                    <div style="margin-bottom: 12px; font-size: 0.8rem; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center;">
+                        <span>Select process node to view auto-flagged dependent tables.</span>
+                        <button class="btn btn-warning" id="btn-chunk-select" onclick="selectCurrentChunk()" disabled style="padding: 4px 10px; font-size: 0.75rem;">
+                            ✔ Auto-Select Process Chunk
+                        </button>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" id="chk-all-tables" onclick="toggleAllTables(this)"></th>
+                                <th>Table Name</th>
+                                <th>Description</th>
+                                <th>Type</th>
+                                <th>Key Strategy</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bronze-tables-tbody">
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 40px;">
+                                    Select an L3 / L4 / L5 node from the process tree on the left.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= 2. SILVER BUCKET ================= -->
+        <div id="view-silver" class="bucket-view">
+            <!-- Left: Config STTM Table Grid Editor -->
+            <div class="panel" style="width: 60%;">
+                <div class="panel-header">
+                    <span>Config STTM Interface</span>
+                    <div>
+                        <button class="btn btn-warning" onclick="openCopyModal()">📋 Copy From...</button>
+                        <button class="btn btn-success" onclick="promoteToGold()">Promote to Gold Stage ➔</button>
+                    </div>
+                </div>
+                <div class="panel-body">
+                    <div style="margin-bottom: 12px; display: flex; gap: 10px; align-items: center;">
+                        <label style="font-size: 0.85rem; color: var(--text-muted);">Active Mapping Table:</label>
+                        <select id="silver-table-select" style="width: 260px;" onchange="renderSilverGrid()"></select>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="data-table">
+                            <thead id="silver-grid-head"></thead>
+                            <tbody id="silver-grid-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Cascading Dependency Graph & Audit -->
+            <div class="panel" style="width: 40%;">
+                <div class="panel-header">
+                    <span>Cascading Dependency Map & Audit</span>
+                </div>
+                <div class="panel-body">
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">
+                        Executing "Copy From" creates primary config keys and auto-cascades reference keys across related tables in real-time.
+                    </p>
+                    <div id="silver-cascade-audit"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= 3. GOLD BUCKET ================= -->
+        <div id="view-gold" class="bucket-view">
+            <!-- Left: Target System & Deployment Setup -->
+            <div class="panel" style="width: 42%;">
+                <div class="panel-header">
+                    <span>Target Deployment Configuration</span>
+                </div>
+                <div class="panel-body">
+                    <div class="form-group">
+                        <label>Deployment Channel Mode</label>
+                        <select id="gold-channel-select" onchange="renderGoldPayload()">
+                            <option value="TR">Customizing Transport Request (SAP TR - E070/E071)</option>
+                            <option value="BCSET">Business Configuration Set Container (BC Set XML)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Target System Environment</label>
+                        <select id="gold-target-env">
+                            <option value="DEV-100">DEV (Client 100 - Golden Customizing)</option>
+                            <option value="QA-200">QA (Client 200 - Integration Testing)</option>
+                            <option value="PRD-500">PROD (Client 500 - Production Environment)</option>
+                        </select>
+                    </div>
+
+                    <div style="border-top: 1px solid var(--border-color); padding-top: 14px; margin-top: 14px;">
+                        <label style="font-size: 0.85rem; font-weight: bold; color: var(--accent-cyan);">Late-Stage Config Injection (Optional)</label>
+                        <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 8px;">
+                            Inject missing parameters directly into the Gold payload before transport packaging.
+                        </p>
+                        <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                            <input type="text" id="late-key-input" placeholder="Key (e.g. ZSER)">
+                            <input type="text" id="late-val-input" placeholder="Description/Value">
+                            <button class="btn" onclick="injectLateConfig()">Inject</button>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-success" style="width: 100%; margin-top: 16px; padding: 12px; justify-content: center;" onclick="executeGoldDeployment()">
+                        🚀 Execute Target System Transport Activation
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right: Payload Viewer & Terminal -->
+            <div class="panel" style="width: 58%;">
+                <div class="panel-header">
+                    <span id="gold-payload-title">Generated Payload Preview</span>
+                </div>
+                <div class="panel-body" style="display: flex; flex-direction: column; gap: 12px;">
+                    <pre class="code-view" id="gold-payload-viewer"></pre>
+                    <div class="terminal-container" id="gold-terminal">
+                        <div class="terminal-line"><span class="terminal-time">[System Staging]</span> Gold Staging Environment Initialized. Ready for transport generation.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- CASCADE "COPY FROM" MODAL -->
+    <div class="modal-overlay" id="copyModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <span>Copy Configuration & Cascade Keys</span>
+                <span style="cursor:pointer;" onclick="closeCopyModal()">✕</span>
+            </div>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 14px;">
+                Choose a standard template. The engine will copy root table records and automatically cascade foreign key additions across associated tables.
+            </p>
+            <p id="modal-copy-context" style="font-size: 0.75rem; font-family: 'Consolas', monospace; color: var(--accent-cyan); margin-bottom: 14px;"></p>
+
+            <div class="form-group">
+                <label>Source Reference Key (Copy From)</label>
+                <select id="modal-copy-source"></select>
+            </div>
+
+            <div class="form-group">
+                <label>New Custom Target Key</label>
+                <input type="text" id="modal-copy-target-key" placeholder="e.g., ZSTO, ZNB, ZUB">
+            </div>
+
+            <div class="form-group">
+                <label>New Custom Target Description</label>
+                <input type="text" id="modal-copy-target-desc" placeholder="e.g., Custom Stock Transport Order">
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;">
+                <button class="btn" style="background: var(--bg-light);" onclick="closeCopyModal()">Cancel</button>
+                <button class="btn btn-success" onclick="executeCascadeCopy()">Execute Cascade Copy</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ================= GLOBAL STATE & DATA ARCHITECTURE =================
+        // =====================================================================
+        // L1 - L6 PROCESS DIRECTORY
+        // Levels 01-09 of the ME21N configuration blueprint, decomposed:
+        //   L1 Value stream / baseline    L4 Config object group (IMG node)
+        //   L2 Process area               L5 Config object instance
+        //   L3 Process                    L6 Detail setting
+        // =====================================================================
+        const processDirectoryData = [
+            {
+                id: "L1-ENT", name: "Enterprise Baseline & Org Structure", level: 1,
+                children: [
+                    {
+                        id: "L2-ENT-FI", name: "Financial Accounting Structure", level: 2,
+                        children: [
+                            {
+                                id: "L3-ENT-CC", name: "Company Code Structure", level: 3,
+                                children: [
+                                    {
+                                        id: "L4-ENT-CCDEF", name: "Company Code Definition (OX02)", level: 4,
+                                        tables: ["T001", "T880", "T004", "T009", "T009B", "T010O", "T001B"],
+                                        children: [
+                                            {
+                                                id: "L5-ENT-CC1000", name: "Company Code 1000 - US East", level: 5,
+                                                tables: ["T001"],
+                                                children: [
+                                                    { id: "L6-ENT-CCGD", name: "Global Data & Local Currency", level: 6, tables: ["T001", "T004"] },
+                                                    { id: "L6-ENT-CCFY", name: "Fiscal Year & Posting Period Variant", level: 6, tables: ["T009", "T009B", "T010O", "T001B"] }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    { id: "L4-ENT-CCASG", name: "Company Code Assignments (OX16/OX19)", level: 4, tables: ["T001", "T880", "TKA02"] }
+                                ]
+                            },
+                            {
+                                id: "L3-ENT-CO", name: "Controlling Structure", level: 3,
+                                children: [
+                                    { id: "L4-ENT-COAR", name: "Controlling Area (OKKP)", level: 4, tables: ["TKA01", "TKA02"] },
+                                    { id: "L4-ENT-CCA", name: "Credit Control Area (OB45)", level: 4, tables: ["T014"] }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        id: "L2-ENT-LOG", name: "Logistics Organizational Structure", level: 2,
+                        children: [
+                            {
+                                id: "L3-ENT-PLANT", name: "Plant & Storage Structure", level: 3,
+                                children: [
+                                    {
+                                        id: "L4-ENT-PLDEF", name: "Plant Definition (OX10)", level: 4,
+                                        tables: ["T001W", "TFACD", "TFACS"],
+                                        children: [
+                                            {
+                                                id: "L5-ENT-PL1000", name: "Plant 1000 - Manufacturing", level: 5,
+                                                tables: ["T001W"],
+                                                children: [
+                                                    { id: "L6-ENT-PLCAL", name: "Factory Calendar & Address", level: 6, tables: ["T001W", "TFACS"] }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    { id: "L4-ENT-SLOC", name: "Storage Location (OX09)", level: 4, tables: ["T001L"] },
+                                    { id: "L4-ENT-VAL", name: "Valuation Level & Area (OX14)", level: 4, tables: ["TCURM", "T001K"] },
+                                    { id: "L4-ENT-PLASG", name: "Plant to Company Code (OX18)", level: 4, tables: ["T001K", "T001W"] }
+                                ]
+                            },
+                            {
+                                id: "L3-ENT-PURORG", name: "Purchasing Organization Structure", level: 3,
+                                children: [
+                                    {
+                                        id: "L4-ENT-EKORG", name: "Purchasing Organization (OX08)", level: 4,
+                                        tables: ["T024E"],
+                                        children: [
+                                            {
+                                                id: "L5-ENT-EK1000", name: "Purch. Org 1000 - Central", level: 5,
+                                                tables: ["T024E"],
+                                                children: [
+                                                    { id: "L6-ENT-EKSCH", name: "Schema Group Assignment (KALSK)", level: 6, tables: ["T024E"] }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    { id: "L4-ENT-EKGRP", name: "Purchasing Group (OME4)", level: 4, tables: ["T024"] },
+                                    { id: "L4-ENT-EKASG", name: "Purch. Org Assignments (OX01/OX17)", level: 4, tables: ["T024E", "T024W", "T024Z"] }
+                                ]
+                            },
+                            {
+                                id: "L3-ENT-SD", name: "Sales Structure for Stock Transfer", level: 3,
+                                children: [
+                                    { id: "L4-ENT-SDDEF", name: "Sales Org / Channel / Division", level: 4, tables: ["TVKO", "TVTW", "TSPA", "TVTA"] },
+                                    { id: "L4-ENT-SHIP", name: "Shipping Point & Plant Assignment", level: 4, tables: ["TVST", "TVSWZ", "TVKWZ"] }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: "P-S2P", name: "Source to Pay (S2P)", level: 1,
+                children: [
+                    {
+                        id: "L2-S2P-MD", name: "Procurement Master Data", level: 2,
+                        children: [
+                            {
+                                id: "L3-MD-MAT", name: "Material Master Setup", level: 3,
+                                children: [
+                                    { id: "L4-MD-MTYPE", name: "Material Types (OMS2)", level: 4, tables: ["T134", "T134T", "T134M", "T137"] },
+                                    { id: "L4-MD-MGRP", name: "Material Groups (OMSF)", level: 4, tables: ["T023", "T023T"] },
+                                    { id: "L4-MD-UOM", name: "Units of Measure (CUNI)", level: 4, tables: ["T006", "T006A", "T006D"] },
+                                    { id: "L4-MD-MFS", name: "Field Selection & Screen Sequence", level: 4, tables: ["T130F", "T130A", "T133A", "T133S"] },
+                                    { id: "L4-MD-MDATA", name: "Material Master Records (MM01)", level: 4, tables: ["MARA", "MAKT", "MARC", "MARD", "MBEW", "MLAN", "MARM"] }
+                                ]
+                            },
+                            {
+                                id: "L3-MD-VEND", name: "Supplier / Business Partner Setup", level: 3,
+                                children: [
+                                    { id: "L4-MD-VACC", name: "Vendor Account Groups (OBD3)", level: 4, tables: ["T077K", "T077Y", "T078K"] },
+                                    {
+                                        id: "L4-MD-VDATA", name: "Vendor Master Segments (XK01 / BP)", level: 4,
+                                        tables: ["LFA1", "LFB1", "LFM1", "LFM2"],
+                                        children: [
+                                            {
+                                                id: "L5-MD-VPURCH", name: "Purchasing Org Segment", level: 5,
+                                                tables: ["LFM1", "LFM2"],
+                                                children: [
+                                                    { id: "L6-MD-VSCH", name: "Schema Group & GR-Based IV", level: 6, tables: ["LFM1"] }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    { id: "L4-MD-VPART", name: "Partner Determination", level: 4, tables: ["WYT3", "TPAR", "TPART", "T160V"] },
+                                    { id: "L4-MD-BP", name: "Business Partner (S/4HANA)", level: 4, tables: ["BUT000", "BUT020", "BUT100", "BUT050", "CVI_VEND_LINK", "TB003"] }
+                                ]
+                            },
+                            {
+                                id: "L3-MD-SRC", name: "Source Determination Data", level: 3,
+                                children: [
+                                    { id: "L4-MD-INFO", name: "Purchasing Info Record (ME11)", level: 4, tables: ["EINA", "EINE"] },
+                                    { id: "L4-MD-EORD", name: "Source List (ME01)", level: 4, tables: ["EORD", "T001W", "MARC"] },
+                                    { id: "L4-MD-QUOTA", name: "Quota Arrangement (MEQ1)", level: 4, tables: ["EQUK", "EQUP"] }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        id: "P-PROC", name: "Procurement Management", level: 2,
+                        children: [
+                            {
+                                id: "P-PO", name: "Purchase Order Processing", level: 3,
+                                children: [
+                                    {
+                                        id: "P-PODT", name: "PO Document Types (OMEC)", level: 4,
+                                        tables: ["T161", "T161T", "T161P", "T161A", "T160", "T160M", "NRIV", "TNRO"],
+                                        children: [
+                                            {
+                                                id: "P-NB", name: "Standard Purchase Order (NB)", level: 5,
+                                                tables: ["T161", "T161T", "T161P"],
+                                                children: [
+                                                    { id: "P-NB-CTL", name: "Document Type Control Settings", level: 6, tables: ["T161", "T168"] },
+                                                    { id: "P-NB-NR", name: "Number Range Assignment", level: 6, tables: ["NRIV", "TNRO", "T161"] },
+                                                    { id: "P-NB-FS", name: "Field Selection & Screen Layout", level: 6, tables: ["T162", "T162K", "T160"] }
+                                                ]
+                                            },
+                                            {
+                                                id: "P-UB", name: "Stock Transport Order (UB)", level: 5,
+                                                tables: ["T161", "T161T", "T161P", "T001W", "TVKWZ"],
+                                                children: []
+                                            },
+                                            {
+                                                id: "P-FO", name: "Framework Order (FO)", level: 5,
+                                                tables: ["T161", "T161T", "T161P"],
+                                                children: []
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        id: "P-ITEMCAT", name: "Item Categories", level: 4,
+                                        tables: ["T163"],
+                                        children: [
+                                            { id: "P-IC-STD", name: "Standard / Consignment / Subcontracting", level: 5, tables: ["T163", "EKPB"] },
+                                            { id: "P-IC-SRV", name: "Service & Limit Items (D / B)", level: 5, tables: ["T163", "ASMD", "ESLL", "ESUH"] }
+                                        ]
+                                    },
+                                    {
+                                        id: "P-ACCASG", name: "Account Assignment Categories (OME9)", level: 4,
+                                        tables: ["T163K", "T163Y", "T162", "T162K"],
+                                        children: [
+                                            { id: "P-AA-K", name: "Cost Centre (K) / Internal Order (F)", level: 5, tables: ["T163K", "T163Y"] },
+                                            { id: "P-AA-A", name: "Asset (A) / Project (P / Q)", level: 5, tables: ["T163K", "T163Y"] }
+                                        ]
+                                    },
+                                    { id: "P-TEXTS", name: "Texts & Version Management", level: 4, tables: ["T166K", "T166P", "TTXOB", "TTXID", "STXH", "STXL", "EREV"] },
+                                    { id: "P-CONF", name: "Confirmation Control", level: 4, tables: ["T163D", "T163L", "EKES"] }
+                                ]
+                            },
+                            {
+                                id: "P-PR", name: "Purchase Requisition Processing", level: 3,
+                                children: [
+                                    { id: "P-PR-DT", name: "PR Document Types (ME51N)", level: 4, tables: ["T161", "T161T", "T161A", "EBAN", "EBKN"] }
+                                ]
+                            },
+                            {
+                                id: "P-OA", name: "Outline Agreement Processing", level: 3,
+                                children: [
+                                    { id: "P-OA-K", name: "Contracts (ME31K)", level: 4, tables: ["T161", "T161T", "A016", "EKAB"] },
+                                    { id: "P-OA-L", name: "Scheduling Agreements (ME31L)", level: 4, tables: ["T161", "T161T", "EKEK", "EKEH"] }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        id: "L2-S2P-PRC", name: "Purchasing Pricing & Conditions", level: 2,
+                        children: [
+                            {
+                                id: "L3-PRC-CT", name: "Condition Technique Setup", level: 3,
+                                children: [
+                                    { id: "L4-PRC-TBL", name: "Condition Tables (M/03)", level: 4, tables: ["T681", "T681A", "A016", "A017", "A018", "A019"] },
+                                    { id: "L4-PRC-ACC", name: "Access Sequences (M/07)", level: 4, tables: ["T682", "T682I", "T682Z"] },
+                                    {
+                                        id: "L4-PRC-CTYP", name: "Condition Types (M/06)", level: 4,
+                                        tables: ["T685", "T685A", "T685T"],
+                                        children: [
+                                            { id: "L5-PRC-PB00", name: "Gross Price (PB00 / PBXX)", level: 5, tables: ["T685A", "T682I"] },
+                                            {
+                                                id: "L5-PRC-FRA1", name: "Delivery Costs (FRA1 / FRB1)", level: 5,
+                                                tables: ["T685A", "T683S"],
+                                                children: [
+                                                    { id: "L6-PRC-ACCKEY", name: "Accrual Account Key (KVSL2)", level: 6, tables: ["T683S", "T030"] }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    { id: "L4-PRC-SCHEMA", name: "Calculation Schema (M/08)", level: 4, tables: ["T683", "T683S", "T683T"] },
+                                    { id: "L4-PRC-DET", name: "Schema Determination (OMFO)", level: 4, tables: ["T024E", "LFM1", "T683"] }
+                                ]
+                            },
+                            { id: "L3-PRC-REC", name: "Condition Records (MEK1)", level: 3, tables: ["KONH", "KONP", "KONM", "KONW", "PRCD_ELEMENTS"] }
+                        ]
+                    },
+                    {
+                        id: "L2-S2P-TAX", name: "Tax Determination", level: 2,
+                        children: [
+                            { id: "L3-TAX-PROC", name: "Tax Procedure Setup (OBQ3 / OBBG)", level: 3, tables: ["T683", "T683S", "T005", "A003"] },
+                            { id: "L3-TAX-CODE", name: "Tax Codes (FTXP)", level: 3, tables: ["T007A", "T007S", "KONP"] },
+                            { id: "L3-TAX-ACC", name: "Tax Account Determination (OB40)", level: 3, tables: ["T030K", "TTXD", "TTXJ", "MLAN"] }
+                        ]
+                    },
+                    {
+                        id: "L2-S2P-GOV", name: "Purchasing Governance & Release", level: 2,
+                        children: [
+                            {
+                                id: "L3-GOV-REL", name: "Release Procedure for Purchase Orders", level: 3,
+                                children: [
+                                    { id: "L4-GOV-CLASS", name: "Classification Setup (CT04 / CL02)", level: 4, tables: ["CABN", "CABNT", "CAWN", "CAWNT", "KLAH", "KSSK", "KSML", "AUSP"] },
+                                    { id: "L4-GOV-GRP", name: "Release Groups & Codes", level: 4, tables: ["T16FG", "T16FC"] },
+                                    {
+                                        id: "L4-GOV-STRAT", name: "Release Strategies & Indicators", level: 4,
+                                        tables: ["T16FS", "T16FE", "T16FV", "T16FW", "T16FT"],
+                                        children: [
+                                            {
+                                                id: "L5-GOV-S1", name: "Strategy by Value & Purch. Group", level: 5,
+                                                tables: ["T16FS", "AUSP"],
+                                                children: [
+                                                    { id: "L6-GOV-CEKKO", name: "Characteristic Source (CEKKO)", level: 6, tables: ["CABN", "AUSP"] }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    { id: "L4-GOV-WF", name: "Workflow Integration", level: 4, tables: ["T16FK", "SWWWIHEAD", "SWW_WI2OBJ"] }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        id: "L2-S2P-OUT", name: "Output & Communication", level: 2,
+                        children: [
+                            {
+                                id: "L3-OUT-MSG", name: "Message Determination (NACE)", level: 3,
+                                children: [
+                                    { id: "L4-OUT-CT", name: "Output Condition Technique (Usage B)", level: 4, tables: ["T681", "T682", "T682I", "T683", "T683S", "T685B"] },
+                                    { id: "L4-OUT-REC", name: "Output Condition Records (MN04)", level: 4, tables: ["NACH", "TPAER"] },
+                                    { id: "L4-OUT-PRG", name: "Programs & Forms", level: 4, tables: ["TNAPR", "NAST", "CMFP", "CMFK"] }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        id: "L2-S2P-VAL", name: "Valuation & Account Assignment", level: 2,
+                        children: [
+                            {
+                                id: "L3-VAL-ACC", name: "MM-FI Account Determination (OBYC)", level: 3,
+                                children: [
+                                    { id: "L4-VAL-CLASS", name: "Valuation Classes (OMSK)", level: 4, tables: ["T025", "T025T", "T025L", "T134"] },
+                                    {
+                                        id: "L4-VAL-POST", name: "Automatic Postings (OBYC)", level: 4,
+                                        tables: ["T030", "T030B"],
+                                        children: [
+                                            { id: "L5-VAL-BSX", name: "Inventory & GR/IR (BSX / WRX)", level: 5, tables: ["T030", "MBEW"] },
+                                            { id: "L5-VAL-GBB", name: "Consumption Offsetting (GBB)", level: 5, tables: ["T030", "T156S"] }
+                                        ]
+                                    },
+                                    { id: "L4-VAL-MVT", name: "Movement Type Control (OMJJ)", level: 4, tables: ["T156", "T156T", "T156W", "T156S"] },
+                                    { id: "L4-VAL-GRP", name: "Valuation Grouping Code (OMWD)", level: 4, tables: ["T001K", "MBEW"] }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: "P-O2C", name: "Order to Cash (O2C)", level: 1,
+                children: [
+                    {
+                        id: "P-SD", name: "Sales Order Management", level: 2,
+                        children: [
+                            {
+                                id: "P-SHS", name: "Sales Header Setup", level: 3,
+                                children: [
+                                    {
+                                        id: "P-SDT", name: "Sales Doc Types", level: 4,
+                                        tables: ["TVAK", "TVAKT", "TVAP"],
+                                        children: [
+                                            { id: "P-OR", name: "Standard Sales Order (OR)", level: 5, tables: ["TVAK", "TVAKT", "TVAP"] }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        ];
+
+        // =====================================================================
+        // CONFIG TABLE REGISTRY
+        // [ table, description, type, primary key, isRoot, dependents, verify ]
+        // verify = name or role varies by release; confirm in SE11 before use.
+        // =====================================================================
+        const configTablesMeta = (function () {
+            const defs = [
+                // ---- L1 Enterprise Baseline : Financial structure --------------
+                ["T001", "Company Codes", "Org Structure", "BUKRS", true, ["T001B", "TKA02"]],
+                ["T880", "Companies (Consolidation)", "Org Structure", "RCOMP"],
+                ["T004", "Chart of Accounts", "Org Structure", "KTOPL"],
+                ["T009", "Fiscal Year Variants", "Global Setting", "PERIV", true, ["T009B"]],
+                ["T009B", "Fiscal Year Variant Periods", "Global Setting", "PERIV, BDATJ"],
+                ["T010O", "Posting Period Variants", "Global Setting", "BKPV"],
+                ["T001B", "Permitted Posting Periods", "Global Setting", "RRCTY, BUKRS"],
+                ["TKA01", "Controlling Areas", "Org Structure", "KOKRS", true, ["TKA02"]],
+                ["TKA02", "CO Area to Company Code", "Org Assignment", "KOKRS, BUKRS"],
+                ["T014", "Credit Control Areas", "Org Structure", "KKBER"],
+
+                // ---- L1 Enterprise Baseline : Logistics structure ---------------
+                ["T001W", "Plants / Branches", "Org Structure", "WERKS", true, ["T001K", "T001L"]],
+                ["TFACD", "Factory Calendar Definition", "Global Setting", "IDENT"],
+                ["TFACS", "Factory Calendar Days", "Global Setting", "IDENT, JAHR"],
+                ["T001L", "Storage Locations", "Org Structure", "WERKS, LGORT"],
+                ["TCURM", "MM Control Table (Valuation Level)", "Global Setting", "MANDT"],
+                ["T001K", "Valuation Areas & Grouping Code", "Org Assignment", "BWKEY"],
+                ["T024E", "Purchasing Organizations", "Org Structure", "EKORG", true, ["T024W", "T024Z"]],
+                ["T024", "Purchasing Groups", "Org Structure", "EKGRP"],
+                ["T024W", "Purch. Org to Plant Assignment", "Org Assignment", "WERKS, EKORG"],
+                ["T024Z", "Reference Purchasing Organization", "Org Assignment", "EKORG, EKORZ"],
+                ["TVKO", "Sales Organizations", "Org Structure", "VKORG"],
+                ["TVTW", "Distribution Channels", "Org Structure", "VTWEG"],
+                ["TSPA", "Divisions", "Org Structure", "SPART"],
+                ["TVTA", "Sales Areas", "Org Assignment", "VKORG, VTWEG, SPART"],
+                ["TVST", "Shipping Points", "Org Structure", "VSTEL"],
+                ["TVSWZ", "Shipping Point to Plant", "Org Assignment", "VSTEL, WERKS"],
+                ["TVKWZ", "Sales Area to Plant", "Org Assignment", "VKORG, VTWEG, WERKS"],
+
+                // ---- L2 Material master ----------------------------------------
+                ["T134", "Material Types", "Header Control", "MTART", true, ["T134T", "T134M"]],
+                ["T134T", "Material Type Texts", "Text Table", "SPRAS, MTART"],
+                ["T134M", "Qty / Value Updating per Mat. Type", "Relational Matrix", "MTART, BWKEY"],
+                ["T137", "Industry Sectors", "Domain Table", "MBRSH"],
+                ["T023", "Material Groups", "Header Control", "MATKL", true, ["T023T"]],
+                ["T023T", "Material Group Texts", "Text Table", "SPRAS, MATKL"],
+                ["T006", "Units of Measure", "Domain Table", "MSEHI", true, ["T006A"]],
+                ["T006A", "UoM Language-Dependent", "Text Table", "SPRAS, MSEHI"],
+                ["T006D", "Dimensions", "Domain Table", "DIMID"],
+                ["T130F", "Material Master Field Selection", "UI Control", "FIELDNAME", false, [], true],
+                ["T130A", "Field Selection Reference", "UI Control", "FLDGRP", false, [], true],
+                ["T133A", "Material Master Screen Sequence", "UI Control", "BILDSEQU", false, [], true],
+                ["T133S", "Material Master Screen Definition", "UI Control", "BILDSEQU, BILDNR", false, [], true],
+                ["MARA", "Material Master General Data", "Master Data", "MATNR", true, ["MAKT", "MARC", "MBEW", "MARM", "MLAN"]],
+                ["MAKT", "Material Descriptions", "Text Table", "MATNR, SPRAS"],
+                ["MARC", "Material Plant Data", "Master Data", "MATNR, WERKS"],
+                ["MARD", "Material Storage Location Data", "Master Data", "MATNR, WERKS, LGORT"],
+                ["MBEW", "Material Valuation", "Master Data", "MATNR, BWKEY, BWTAR"],
+                ["MLAN", "Material Tax Classification", "Master Data", "MATNR, ALAND"],
+                ["MARM", "Units of Measure per Material", "Master Data", "MATNR, MEINH"],
+
+                // ---- L3 Supplier / business partner ----------------------------
+                ["T077K", "Vendor Account Groups", "Header Control", "KTOKK", true, ["T077Y", "T078K"]],
+                ["T077Y", "Vendor Account Group Texts", "Text Table", "SPRAS, KTOKK"],
+                ["T078K", "Vendor Field Status per Acct Group", "UI Control", "KTOKK", false, [], true],
+                ["LFA1", "Vendor General Data", "Master Data", "LIFNR", true, ["LFB1", "LFM1", "LFM2", "WYT3"]],
+                ["LFB1", "Vendor Company Code Data", "Master Data", "LIFNR, BUKRS"],
+                ["LFM1", "Vendor Purchasing Org Data", "Master Data", "LIFNR, EKORG"],
+                ["LFM2", "Vendor Purch. Data per Sub-Range", "Master Data", "LIFNR, EKORG, LTSNR"],
+                ["WYT3", "Vendor Partner Functions", "Relational Matrix", "LIFNR, EKORG, PARVW", false, [], true],
+                ["TPAR", "Partner Functions", "Domain Table", "PARVW", true, ["TPART"]],
+                ["TPART", "Partner Function Texts", "Text Table", "SPRAS, PARVW"],
+                ["T160V", "Partner Schemas - Purchasing", "Relational Matrix", "PARGR", false, [], true],
+                ["BUT000", "Business Partner General (S/4)", "Master Data", "PARTNER"],
+                ["BUT020", "BP Addresses", "Master Data", "PARTNER, ADDRNUMBER"],
+                ["BUT100", "BP Roles", "Relational Matrix", "PARTNER, RLTYP"],
+                ["BUT050", "BP Relationships", "Relational Matrix", "RELNR"],
+                ["CVI_VEND_LINK", "BP to Vendor Link (CVI)", "Org Assignment", "PARTNER_GUID, VENDOR"],
+                ["TB003", "BP Role Categories", "Domain Table", "RLTYP", false, [], true],
+
+                // ---- Source determination master data --------------------------
+                ["EINA", "Info Record - General Data", "Master Data", "INFNR", true, ["EINE"]],
+                ["EINE", "Info Record - Purch. Org Data", "Master Data", "INFNR, EKORG, WERKS"],
+                ["EORD", "Source List", "Master Data", "MATNR, WERKS, ZEORD"],
+                ["EQUK", "Quota Arrangement Header", "Master Data", "QUNUM", true, ["EQUP"]],
+                ["EQUP", "Quota Arrangement Item", "Master Data", "QUNUM, QUPOS"],
+
+                // ---- L4 Purchasing document control ----------------------------
+                ["T161", "Purchasing Document Types", "Header Control", "BSART", true, ["T161T", "T161P", "T161A", "T168"]],
+                ["T161T", "Doc Type Descriptions", "Text Table", "SPRAS, BSART"],
+                ["T161P", "Allowed Item Categories per Doc Type", "Relational Matrix", "BSART, PSTYP", false, [], true],
+                ["T161A", "Link Requisition to PO Doc Type", "Relational Matrix", "BSART, BSTYP"],
+                ["T160", "Transaction Control - Purchasing", "UI Control", "TCODE"],
+                ["T160M", "Purchasing System Messages", "UI Control", "ARBGB, MSGNR"],
+                ["T168", "Screen Control Header", "UI Control", "BSART"],
+                ["T162", "Field Selection - Purchasing Document", "UI Control", "FAUSG", false, [], true],
+                ["T162K", "Field Selection Keys", "UI Control", "FAUSG, FELDN", false, [], true],
+                ["NRIV", "Number Range Intervals", "Number Range", "OBJECT, NRRANGENR"],
+                ["TNRO", "Number Range Object Registry", "Number Range", "OBJECT"],
+                ["T163", "Item Categories in Purchasing Doc", "Header Control", "PSTYP", true, ["T163Y"]],
+                ["T163K", "Account Assignment Categories", "Header Control", "KNTTP", true, ["T163Y", "T162K"]],
+                ["T163Y", "Item Cat / Acct Assign Cat Combination", "Relational Matrix", "PSTYP, KNTTP"],
+                ["T163D", "Confirmation Categories", "Domain Table", "KZABS", false, [], true],
+                ["T163L", "Confirmation Control Keys", "Header Control", "BSTAE", false, [], true],
+                ["T166K", "Purchasing Header Text Types", "UI Control", "TDOBJECT, TDID", false, [], true],
+                ["T166P", "Purchasing Item Text Types", "UI Control", "TDOBJECT, TDID", false, [], true],
+                ["TTXOB", "Text Object Registry", "Domain Table", "TDOBJECT"],
+                ["TTXID", "Text ID Registry", "Domain Table", "TDOBJECT, TDID"],
+                ["STXH", "SAPscript Text Header", "Transaction Data", "TDOBJECT, TDNAME, TDID"],
+                ["STXL", "SAPscript Text Lines", "Transaction Data", "TDOBJECT, TDNAME, TDID"],
+                ["EREV", "Purchasing Document Versions", "Transaction Data", "EBELN, EBELP, REVNO"],
+                ["EKPB", "Components to be Provided", "Transaction Data", "EBELN, EBELP, RSPOS"],
+                ["EKES", "Vendor Confirmations", "Transaction Data", "EBELN, EBELP, ETENS"],
+                ["EBAN", "Purchase Requisition", "Transaction Data", "BANFN, BNFPO"],
+                ["EBKN", "PR Account Assignment", "Transaction Data", "BANFN, BNFPO, ZEBKN"],
+                ["EKAB", "Release Documentation (Call-offs)", "Transaction Data", "KONNR, KTPNR, EBELN"],
+                ["EKEK", "Sched. Agreement Release Header", "Transaction Data", "EBELN, EBELP, ABRUF"],
+                ["EKEH", "Sched. Agreement Release Doc.", "Transaction Data", "EBELN, EBELP, ABRUF"],
+                ["ASMD", "Service Master", "Master Data", "ASNUM"],
+                ["ESLL", "Service Lines", "Transaction Data", "PACKNO, INTROW"],
+                ["ESUH", "Service Limits Header", "Transaction Data", "PACKNO", false, [], true],
+
+                // ---- L5 Pricing / condition technique --------------------------
+                ["T681", "Condition Tables", "Condition Config", "KVEWE, KOTABNR", true, ["A016", "A017", "A018", "A019"]],
+                ["T681A", "Condition Table Attributes", "Condition Config", "KVEWE, KOTABNR", false, [], true],
+                ["T682", "Access Sequences", "Condition Config", "KVEWE, KAPPL, KOZGF", true, ["T682I", "T682Z"]],
+                ["T682I", "Access Sequence - Accesses", "Condition Config", "KOZGF, KOLNR"],
+                ["T682Z", "Access Sequence - Field Mapping", "Condition Config", "KOZGF, KOLNR"],
+                ["T685", "Condition Types", "Condition Config", "KVEWE, KAPPL, KSCHL", true, ["T685A", "T685T"]],
+                ["T685A", "Condition Type Control", "Condition Config", "KSCHL"],
+                ["T685T", "Condition Type Texts", "Text Table", "SPRAS, KSCHL"],
+                ["T683", "Calculation Schema Header", "Condition Config", "KALSM", true, ["T683S", "T683T"]],
+                ["T683S", "Calculation Schema Steps", "Condition Config", "KALSM, STUNR, ZAEHK"],
+                ["T683T", "Calculation Schema Texts", "Text Table", "SPRAS, KALSM"],
+                ["A016", "Cond. Table - Contract Item", "Condition Data", "KSCHL, EVRTN, EVRTP"],
+                ["A017", "Cond. Table - Info Record (Plant)", "Condition Data", "KSCHL, LIFNR, MATNR, EKORG, WERKS"],
+                ["A018", "Cond. Table - Info Record", "Condition Data", "KSCHL, LIFNR, MATNR, EKORG"],
+                ["A019", "Cond. Table - Vendor", "Condition Data", "KSCHL, LIFNR, EKORG"],
+                ["KONH", "Condition Record Header", "Condition Data", "KNUMH", true, ["KONP"]],
+                ["KONP", "Condition Record Items", "Condition Data", "KNUMH, KOPOS"],
+                ["KONM", "Condition Quantity Scales", "Condition Data", "KNUMH, KOPOS, KSTBM"],
+                ["KONW", "Condition Value Scales", "Condition Data", "KNUMH, KOPOS, KSTBW"],
+                ["PRCD_ELEMENTS", "Document Conditions (S/4, was KONV)", "Condition Data", "KNUMV, KPOSN, STUNR"],
+
+                // ---- L6 Tax ----------------------------------------------------
+                ["T005", "Countries & Tax Procedure Assignment", "Global Setting", "LAND1"],
+                ["A003", "Cond. Table - Tax Classification", "Condition Data", "KSCHL, ALAND, MWSKZ"],
+                ["T007A", "Tax Codes", "Tax Config", "KALSM, MWSKZ", true, ["T007S"]],
+                ["T007S", "Tax Code Texts", "Text Table", "SPRAS, KALSM, MWSKZ"],
+                ["T030K", "Tax Account Determination", "Account Determination", "KTOPL, KTOSL, MWSKZ"],
+                ["TTXD", "Tax Jurisdiction Structure", "Tax Config", "KALSM"],
+                ["TTXJ", "Tax Jurisdiction Codes", "Tax Config", "KALSM, TXJCD"],
+
+                // ---- L7 Release strategy & classification ----------------------
+                ["CABN", "Characteristics", "Classification", "ATINN", true, ["CABNT", "CAWN"]],
+                ["CABNT", "Characteristic Texts", "Text Table", "ATINN, SPRAS"],
+                ["CAWN", "Characteristic Values", "Classification", "ATINN, ATZHL", true, ["CAWNT"]],
+                ["CAWNT", "Characteristic Value Texts", "Text Table", "ATINN, ATZHL, SPRAS"],
+                ["KLAH", "Class Header", "Classification", "CLINT"],
+                ["KSSK", "Object to Class Allocation", "Classification", "OBJEK, CLINT"],
+                ["KSML", "Characteristics of a Class", "Classification", "CLINT, IMERK"],
+                ["AUSP", "Characteristic Values of Object", "Classification", "OBJEK, ATINN, ATZHL"],
+                ["T16FG", "Release Groups", "Release Config", "FRGGR", true, ["T16FC", "T16FS", "T16FE", "T16FV", "T16FW"]],
+                ["T16FC", "Release Codes", "Release Config", "FRGGR, FRGCO"],
+                ["T16FS", "Release Strategies", "Release Config", "FRGGR, FRGSX"],
+                ["T16FE", "Release Indicators", "Release Config", "FRGKZ"],
+                ["T16FV", "Release Prerequisites", "Relational Matrix", "FRGGR, FRGSX, FRGCO"],
+                ["T16FW", "Release Statuses", "Relational Matrix", "FRGGR, FRGSX"],
+                ["T16FT", "Release Strategy Texts", "Text Table", "SPRAS, FRGGR, FRGSX", false, [], true],
+                ["T16FK", "Release Code Agent Assignment", "Release Config", "FRGGR, FRGCO", false, [], true],
+                ["SWWWIHEAD", "Workflow Work Item Header", "Transaction Data", "WI_ID"],
+                ["SWW_WI2OBJ", "Work Item to Object Link", "Transaction Data", "WI_ID, INSTID"],
+
+                // ---- L8 Output determination -----------------------------------
+                ["T685B", "Output Types (Messages)", "Message Config", "KVEWE, KAPPL, KSCHL", false, [], true],
+                ["NACH", "Output Condition Records", "Message Config", "KAPPL, KSCHL, KOTABNR", true, ["TNAPR"]],
+                ["TNAPR", "Output Programs and Forms", "Message Config", "KSCHL, NACHA", false, [], true],
+                ["NAST", "Message Status per Document", "Transaction Data", "KAPPL, OBJKY, KSCHL"],
+                ["CMFP", "Message Processing Log", "Transaction Data", "ARBGB, MSGNR"],
+                ["CMFK", "Message Log Header", "Transaction Data", "NR"],
+                ["TPAER", "Partner Roles for Messages", "Message Config", "KAPPL, PARVW", false, [], true],
+
+                // ---- L9 MM-FI account determination ----------------------------
+                ["T025", "Valuation Classes", "Account Determination", "BKLAS", true, ["T025T"]],
+                ["T025T", "Valuation Class Texts", "Text Table", "SPRAS, BKLAS"],
+                ["T025L", "Account Category Reference", "Account Determination", "KKREF", false, [], true],
+                ["T030", "Automatic Postings (OBYC)", "Account Determination", "KTOPL, KTOSL, BWMOD, BKLAS", true, ["T030B"]],
+                ["T030B", "Transaction / Event Keys", "Account Determination", "KTOSL", false, [], true],
+                ["T156", "Movement Types", "Header Control", "BWART", true, ["T156T", "T156W", "T156S"]],
+                ["T156T", "Movement Type Texts", "Text Table", "SPRAS, BWART"],
+                ["T156W", "Movement Type Value String", "Account Determination", "BWART, SOBKZ", false, [], true],
+                ["T156S", "Value String to Transaction Key", "Account Determination", "VORSL, BWSCL", false, [], true],
+
+                // ---- O2C (retained) --------------------------------------------
+                ["TVAK", "Sales Document Types", "Header Control", "AUART", true, ["TVAKT", "TVAP"]],
+                ["TVAKT", "Sales Doc Type Texts", "Text Table", "SPRAS, AUART"],
+                ["TVAP", "Sales Item Categories", "Item Control", "PSTYV"]
+            ];
+
+            const reg = {};
+            defs.forEach(function (d) {
+                reg[d[0]] = {
+                    name: d[0],
+                    desc: d[1],
+                    type: d[2],
+                    pk: d[3],
+                    root: !!d[4],
+                    dependent: d[5] || [],
+                    verify: !!d[6]
+                };
+            });
+            return reg;
+        })();
+
+        // Columns treated as the descriptive text of a record during cascade copy.
+        const DESC_FIELDS = ["Description", "BATXT", "BEZEI", "EKOTX", "BTEXT", "VTEXT", "KTEXT", "MAKTX", "NAME1", "TXT"];
+
+        // App Central State
+        let state = {
+            tenantId: "TENANT_ACME",
+            companyCode: "1000",
+            sessionId: "",
+            selectedNode: null,
+            extractedTables: new Set(),
+            sttmData: {
+                // ---- L1 Enterprise structure -----------------------------------
+                "T001": [
+                    { BUKRS: "1000", BUTXT: "ACME US East Coast", ORT01: "Boston", WAERS: "USD", KTOPL: "INT", PERIV: "K4", RCOMP: "ACME" },
+                    { BUKRS: "2000", BUTXT: "ACME DE HQ Ops", ORT01: "Walldorf", WAERS: "EUR", KTOPL: "INT", PERIV: "K4", RCOMP: "ACME" }
+                ],
+                "T001W": [
+                    { WERKS: "1000", NAME1: "Manufacturing Plant Boston", BWKEY: "1000", FABKL: "US", KORDB: "X" },
+                    { WERKS: "1100", NAME1: "Distribution Center NJ", BWKEY: "1100", FABKL: "US", KORDB: "" }
+                ],
+                "T001K": [
+                    { BWKEY: "1000", BUKRS: "1000", BWMOD: "0001" },
+                    { BWKEY: "1100", BUKRS: "1000", BWMOD: "0001" }
+                ],
+                "T001L": [
+                    { WERKS: "1000", LGORT: "0001", LGOBE: "Raw Material Store" },
+                    { WERKS: "1000", LGORT: "0002", LGOBE: "Finished Goods" }
+                ],
+                "T024E": [
+                    { EKORG: "1000", EKOTX: "Central Purchasing", BUKRS: "1000", KALSK: "01", EKORZ: "" },
+                    { EKORG: "2000", EKOTX: "Plant Purchasing DE", BUKRS: "2000", KALSK: "02", EKORZ: "1000" }
+                ],
+                "T024": [
+                    { EKGRP: "001", EKNAM: "Direct Materials", TELF1: "617-555-0100" },
+                    { EKGRP: "002", EKNAM: "Indirect / MRO", TELF1: "617-555-0110" }
+                ],
+                "T024W": [
+                    { WERKS: "1000", EKORG: "1000" },
+                    { WERKS: "1100", EKORG: "1000" }
+                ],
+                "TKA02": [
+                    { KOKRS: "1000", BUKRS: "1000" },
+                    { KOKRS: "1000", BUKRS: "2000" }
+                ],
+
+                // ---- L2 Material master ----------------------------------------
+                "T134": [
+                    { MTART: "ROH", Description: "Raw Materials", NUMKI: "01", NUMKE: "", KKREF: "0001" },
+                    { MTART: "HALB", Description: "Semifinished Products", NUMKI: "01", NUMKE: "", KKREF: "0001" },
+                    { MTART: "HAWA", Description: "Trading Goods", NUMKI: "01", NUMKE: "", KKREF: "0001" }
+                ],
+                "T134M": [
+                    { MTART: "ROH", BWKEY: "1000", WERTU: "X", MENGU: "X" },
+                    { MTART: "HAWA", BWKEY: "1000", WERTU: "X", MENGU: "X" }
+                ],
+                "T023": [
+                    { MATKL: "001", WGBEZ: "Metals & Alloys" },
+                    { MATKL: "007", WGBEZ: "MRO Consumables" }
+                ],
+
+                // ---- L3 Supplier -----------------------------------------------
+                "T077K": [
+                    { KTOKK: "KRED", Description: "Standard Vendor", NUMKR: "01", XCPDK: "" },
+                    { KTOKK: "CPD", Description: "One-Time Vendor", NUMKR: "02", XCPDK: "X" }
+                ],
+                "LFM1": [
+                    { LIFNR: "0000100001", EKORG: "1000", WAERS: "USD", ZTERM: "0001", KALSK: "01", WEBRE: "X" },
+                    { LIFNR: "0000100002", EKORG: "1000", WAERS: "EUR", ZTERM: "ZB01", KALSK: "01", WEBRE: "" }
+                ],
+                "EINE": [
+                    { INFNR: "5300000123", EKORG: "1000", WERKS: "1000", NETPR: "24.50", APLFZ: "10", MWSKZ: "V1" }
+                ],
+                "EORD": [
+                    { MATNR: "MAT-1000", WERKS: "1000", LIFNR: "0000100001", EKORG: "1000", FLIFN: "X" }
+                ],
+
+                // ---- L4 Purchasing document control ----------------------------
+                "T161": [
+                    { BSART: "NB", BSTYP: "F", PINCR: "01", NUMKE: "01", Description: "Standard Purchase Order" },
+                    { BSART: "UB", BSTYP: "F", PINCR: "01", NUMKE: "02", Description: "Stock Transport Order" },
+                    { BSART: "FO", BSTYP: "F", PINCR: "01", NUMKE: "01", Description: "Framework Order" }
+                ],
+                "T161T": [
+                    { SPRAS: "EN", BSART: "NB", BATXT: "Standard PO" },
+                    { SPRAS: "EN", BSART: "UB", BATXT: "Stock Transport Order" },
+                    { SPRAS: "EN", BSART: "FO", BATXT: "Framework Order" }
+                ],
+                "T161P": [
+                    { BSART: "NB", PSTYP: "0", PSTYP_TXT: "Standard" },
+                    { BSART: "NB", PSTYP: "2", PSTYP_TXT: "Consignment" },
+                    { BSART: "NB", PSTYP: "3", PSTYP_TXT: "Subcontracting" },
+                    { BSART: "UB", PSTYP: "7", PSTYP_TXT: "Stock Transfer" },
+                    { BSART: "FO", PSTYP: "1", PSTYP_TXT: "Limit" }
+                ],
+                "T161A": [
+                    { BSART: "NB", BSTYP: "B", Description: "PR type NB allowed for PO type NB" },
+                    { BSART: "UB", BSTYP: "B", Description: "PR type NB allowed for STO type UB" }
+                ],
+                "T163": [
+                    { PSTYP: "0", Description: "Standard", WEPOS: "X", REPOS: "X", KNTTP_REQ: "" },
+                    { PSTYP: "2", Description: "Consignment", WEPOS: "X", REPOS: "", KNTTP_REQ: "" },
+                    { PSTYP: "3", Description: "Subcontracting", WEPOS: "X", REPOS: "X", KNTTP_REQ: "" },
+                    { PSTYP: "9", Description: "Service", WEPOS: "X", REPOS: "X", KNTTP_REQ: "X" }
+                ],
+                "T163K": [
+                    { KNTTP: "K", Description: "Cost Centre", KZVBR: "V", WEPOS: "X", REPOS: "X" },
+                    { KNTTP: "F", Description: "Internal Order", KZVBR: "V", WEPOS: "X", REPOS: "X" },
+                    { KNTTP: "A", Description: "Asset", KZVBR: "A", WEPOS: "X", REPOS: "X" },
+                    { KNTTP: "P", Description: "Project / WBS", KZVBR: "V", WEPOS: "X", REPOS: "X" }
+                ],
+                "T163Y": [
+                    { PSTYP: "0", KNTTP: "K", Description: "Standard + Cost Centre" },
+                    { PSTYP: "0", KNTTP: "F", Description: "Standard + Internal Order" },
+                    { PSTYP: "9", KNTTP: "K", Description: "Service + Cost Centre" }
+                ],
+
+                // ---- L5 Pricing ------------------------------------------------
+                "T683": [
+                    { KALSM: "RM0000", Description: "Purchasing Document (Big)", KVEWE: "A", KAPPL: "M" },
+                    { KALSM: "RM1000", Description: "Stock Transfer Order", KVEWE: "A", KAPPL: "M" }
+                ],
+                "T683S": [
+                    { KALSM: "RM0000", STUNR: "010", KSCHL: "PB00", Description: "Gross Price", KVSL1: "" },
+                    { KALSM: "RM0000", STUNR: "100", KSCHL: "RA01", Description: "Discount % on Gross", KVSL1: "" },
+                    { KALSM: "RM0000", STUNR: "300", KSCHL: "FRA1", Description: "Freight %", KVSL1: "FR1" },
+                    { KALSM: "RM0000", STUNR: "900", KSCHL: "NAVS", Description: "Non-Deductible Tax", KVSL1: "" }
+                ],
+                "T685A": [
+                    { KSCHL: "PB00", Description: "Gross Price", KOZGF: "0002", KRECH: "C", KOAID: "B" },
+                    { KSCHL: "RA01", Description: "Discount % on Gross", KOZGF: "0002", KRECH: "A", KOAID: "A" },
+                    { KSCHL: "FRA1", Description: "Freight %", KOZGF: "0002", KRECH: "A", KOAID: "B" }
+                ],
+                "T682I": [
+                    { KOZGF: "0002", KOLNR: "10", KOTABNR: "016", Description: "Contract Item" },
+                    { KOZGF: "0002", KOLNR: "20", KOTABNR: "017", Description: "Info Record (Plant)" },
+                    { KOZGF: "0002", KOLNR: "30", KOTABNR: "018", Description: "Info Record" }
+                ],
+
+                // ---- L6 Tax ----------------------------------------------------
+                "T007A": [
+                    { KALSM: "TAXUSJ", MWSKZ: "V0", Description: "Input Tax Exempt", MWART: "V" },
+                    { KALSM: "TAXUSJ", MWSKZ: "V1", Description: "Input Tax 6%", MWART: "V" }
+                ],
+
+                // ---- L7 Release strategy ---------------------------------------
+                "T16FG": [
+                    { FRGGR: "01", Description: "PO Release - Capex", CLASS: "PO_RELEASE" },
+                    { FRGGR: "02", Description: "PO Release - Opex", CLASS: "PO_RELEASE" }
+                ],
+                "T16FC": [
+                    { FRGGR: "01", FRGCO: "01", Description: "Buyer" },
+                    { FRGGR: "01", FRGCO: "02", Description: "Purchasing Manager" },
+                    { FRGGR: "01", FRGCO: "03", Description: "CFO" }
+                ],
+                "T16FS": [
+                    { FRGGR: "01", FRGSX: "S1", Description: "Value up to 10,000 USD", FRGC1: "01" },
+                    { FRGGR: "01", FRGSX: "S2", Description: "Value 10,001 - 100,000 USD", FRGC1: "01" },
+                    { FRGGR: "01", FRGSX: "S3", Description: "Value above 100,000 USD", FRGC1: "01" }
+                ],
+
+                // ---- L8 Output -------------------------------------------------
+                "NACH": [
+                    { KAPPL: "EF", KSCHL: "NEU", KOTABNR: "025", Description: "New PO - Print", NACHA: "1" },
+                    { KAPPL: "EF", KSCHL: "NEU", KOTABNR: "025", Description: "New PO - External Send", NACHA: "5" }
+                ],
+
+                // ---- L9 Account determination ----------------------------------
+                "T025": [
+                    { BKLAS: "3000", Description: "Raw Materials", KKREF: "0001" },
+                    { BKLAS: "3100", Description: "Trading Goods", KKREF: "0001" }
+                ],
+                "T030": [
+                    { KTOPL: "INT", KTOSL: "BSX", BWMOD: "0001", BKLAS: "3000", KONTS: "300000" },
+                    { KTOPL: "INT", KTOSL: "WRX", BWMOD: "0001", BKLAS: "", KONTS: "191100" },
+                    { KTOPL: "INT", KTOSL: "GBB", BWMOD: "0001", BKLAS: "3000", KONTS: "400000" },
+                    { KTOPL: "INT", KTOSL: "PRD", BWMOD: "0001", BKLAS: "3000", KONTS: "231000" }
+                ],
+                "T156": [
+                    { BWART: "101", Description: "GR Goods Receipt for PO", SHKZG: "S" },
+                    { BWART: "102", Description: "GR for PO - Reversal", SHKZG: "H" },
+                    { BWART: "122", Description: "Return Delivery to Vendor", SHKZG: "H" }
+                ],
+
+                // ---- O2C (retained) --------------------------------------------
+                "TVAK": [
+                    { AUART: "OR", TVKOR: "1000", Description: "Standard Sales Order" }
+                ],
+                "TVAKT": [
+                    { SPRAS: "EN", AUART: "OR", BEZEI: "Standard Sales Order" }
+                ]
+            },
+            lateConfigs: [],
+            activeBucket: "bronze"
+        };
+
+        // ================= INITIALIZATION & MULTI-TENANCY =================
+        function handleSessionUpdate() {
+            state.tenantId = document.getElementById('sel-tenant').value;
+            state.companyCode = document.getElementById('sel-cocode').value;
+            const rand = Math.floor(1000 + Math.random() * 9000);
+            state.sessionId = `SESS_${state.tenantId.substring(7)}_${state.companyCode}_${rand}`;
+            document.getElementById('session-tag').innerText = state.sessionId;
+        }
+
+        function initTree() {
+            const container = document.getElementById('process-tree-root');
+            container.innerHTML = renderTreeNodes(processDirectoryData);
+        }
+
+        function renderTreeNodes(nodes) {
+            let html = '';
+            nodes.forEach(node => {
+                const hasChildren = node.children && node.children.length > 0;
+                const tblCount = node.tables ? node.tables.length : 0;
+
+                html += `
+                    <li class="tree-node" data-name="${node.name.toLowerCase()}" data-tables="${node.tables ? node.tables.join(',').toLowerCase() : ''}">
+                        <div class="node-row" onclick="onTreeNodeSelect('${node.id}', event)">
+                            <span onclick="toggleTreeExpand(event)" style="font-weight:bold; cursor:pointer;">${hasChildren ? '▶' : '•'}</span>
+                            <span class="badge badge-l">L${node.level}</span>
+                            <span>${node.name}</span>
+                            ${tblCount > 0 ? `<span class="badge badge-tbl">${tblCount} T-Tables</span>` : ''}
+                        </div>
+                        ${hasChildren ? `<ul class="tree-children">${renderTreeNodes(node.children)}</ul>` : ''}
+                    </li>
+                `;
+            });
+            return html;
+        }
+
+        function toggleTreeExpand(e) {
+            e.stopPropagation();
+            const row = e.target.parentElement;
+            const group = row.nextElementSibling;
+            if (group && group.classList.contains('tree-children')) {
+                group.classList.toggle('expanded');
+                e.target.innerText = group.classList.contains('expanded') ? '▼' : '▶';
+            }
+        }
+
+        // Expand/collapse a child list and keep its caret glyph in sync.
+        function setExpanded(ul, on) {
+            if (!ul || !ul.classList.contains('tree-children')) return;
+            ul.classList.toggle('expanded', on);
+            const row = ul.previousElementSibling;
+            if (row && row.classList.contains('node-row')) {
+                const caret = row.querySelector('span');
+                if (caret && caret.innerText !== '•') caret.innerText = on ? '▼' : '▶';
+            }
+        }
+
+        function expandAllTree() {
+            document.querySelectorAll('.tree-children').forEach(el => setExpanded(el, true));
+        }
+
+        // Matches reveal themselves, everything below them, and every ancestor
+        // on the way up - otherwise a hidden L1 takes its matching L5 with it.
+        function filterProcessDirectory() {
+            const query = document.getElementById('dir-search').value.toLowerCase().trim();
+            const nodes = document.querySelectorAll('.tree-node');
+
+            if (!query) {
+                nodes.forEach(n => { n.style.display = ''; });
+                return;
+            }
+
+            nodes.forEach(n => { n.style.display = 'none'; });
+
+            nodes.forEach(node => {
+                const name = node.getAttribute('data-name') || '';
+                const tables = node.getAttribute('data-tables') || '';
+                if (!name.includes(query) && !tables.includes(query)) return;
+
+                node.style.display = '';
+                node.querySelectorAll('.tree-node').forEach(d => { d.style.display = ''; });
+
+                let parent = node.parentElement;
+                while (parent && parent.id !== 'process-tree-root') {
+                    if (parent.classList.contains('tree-children')) setExpanded(parent, true);
+                    if (parent.classList.contains('tree-node')) parent.style.display = '';
+                    parent = parent.parentElement;
+                }
+            });
+        }
+
+        // ================= 1. BRONZE ENGINE =================
+        function onTreeNodeSelect(nodeId, event) {
+            event.stopPropagation();
+            document.querySelectorAll('.node-row').forEach(r => r.classList.remove('selected'));
+            event.currentTarget.classList.add('selected');
+
+            const node = findNodeById(processDirectoryData, nodeId);
+            state.selectedNode = node;
+
+            document.getElementById('bronze-table-header').innerText =
+                `L${node.level} · ${node.name} — Associated Config T-Tables`;
+            document.getElementById('btn-chunk-select').disabled = false;
+            renderBronzeTableGrid(node);
+        }
+
+        function findNodeById(nodes, id) {
+            for (let n of nodes) {
+                if (n.id === id) return n;
+                if (n.children) {
+                    let res = findNodeById(n.children, id);
+                    if (res) return res;
+                }
+            }
+            return null;
+        }
+
+        function renderBronzeTableGrid(node) {
+            const tbody = document.getElementById('bronze-tables-tbody');
+            const tables = new Set();
+            collectNodeTables(node, tables);
+
+            if (tables.size === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding:30px;">No direct T-Tables associated with this parent node. Expand child nodes.</td></tr>`;
+                document.getElementById('btn-promote-silver').disabled = true;
+                return;
+            }
+
+            let html = '';
+            tables.forEach(tbl => {
+                const meta = configTablesMeta[tbl] || { name: tbl, desc: "Config Table", type: "Domain Table", pk: "KEY" };
+                html += `
+                    <tr>
+                        <td><input type="checkbox" class="bronze-chk" value="${meta.name}" checked onclick="updateBronzeSelection()"></td>
+                        <td style="font-weight:bold; color:var(--accent-cyan);">${meta.name}${meta.verify ? ' <span title="Name or role varies by release - confirm in SE11 before transport" style="color:var(--warning-orange); cursor:help;">&#9888;</span>' : ''}</td>
+                        <td>${meta.desc}</td>
+                        <td><span class="badge">${meta.type}</span></td>
+                        <td><code>${meta.pk}</code></td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+            updateBronzeSelection();
+        }
+
+        function collectNodeTables(node, tableSet) {
+            if (node.tables) {
+                node.tables.forEach(t => {
+                    tableSet.add(t);
+                    if (configTablesMeta[t] && configTablesMeta[t].dependent) {
+                        configTablesMeta[t].dependent.forEach(dep => tableSet.add(dep));
+                    }
+                });
+            }
+            if (node.children) {
+                node.children.forEach(child => collectNodeTables(child, tableSet));
+            }
+        }
+
+        function selectCurrentChunk() {
+            document.querySelectorAll('.bronze-chk').forEach(c => c.checked = true);
+            updateBronzeSelection();
+        }
+
+        function toggleAllTables(chk) {
+            document.querySelectorAll('.bronze-chk').forEach(c => c.checked = chk.checked);
+            updateBronzeSelection();
+        }
+
+        function updateBronzeSelection() {
+            const checked = document.querySelectorAll('.bronze-chk:checked');
+            state.extractedTables.clear();
+            checked.forEach(c => state.extractedTables.add(c.value));
+            document.getElementById('btn-promote-silver').disabled = state.extractedTables.size === 0;
+        }
+
+        function promoteToSilver() {
+            document.getElementById('nav-silver').classList.remove('disabled');
+            switchBucket('silver');
+            initSilverStage();
+        }
+
+        // ================= 2. SILVER ENGINE =================
+        function initSilverStage() {
+            const select = document.getElementById('silver-table-select');
+            select.innerHTML = '';
+
+            state.extractedTables.forEach(tbl => {
+                if (state.sttmData[tbl]) {
+                    const opt = document.createElement('option');
+                    opt.value = tbl;
+                    opt.innerText = `${tbl} - ${configTablesMeta[tbl]?.desc || 'Config Table'}`;
+                    select.appendChild(opt);
+                }
+            });
+
+            renderSilverGrid();
+            renderSilverAudit();
+        }
+
+        function renderSilverGrid() {
+            const tbl = document.getElementById('silver-table-select').value;
+            const head = document.getElementById('silver-grid-head');
+            const body = document.getElementById('silver-grid-body');
+
+            if (!tbl || !state.sttmData[tbl]) {
+                head.innerHTML = '';
+                body.innerHTML = '<tr><td style="text-align:center; padding:20px;">No STTM Data available for this table.</td></tr>';
+                return;
+            }
+
+            const rows = state.sttmData[tbl];
+            const cols = Object.keys(rows[0]);
+
+            head.innerHTML = '<tr>' + cols.map(c => `<th>${c}</th>`).join('') + '</tr>';
+
+            let html = '';
+            rows.forEach((r, idx) => {
+                html += '<tr>' + cols.map(c => `<td><input type="text" value="${r[c]}" onchange="state.sttmData['${tbl}'][${idx}]['${c}']=this.value"></td>`).join('') + '</tr>';
+            });
+            body.innerHTML = html;
+        }
+
+        // Root of the staged chunk: first extracted table flagged root that has records.
+        function resolveRootTable() {
+            let root = null;
+            state.extractedTables.forEach(t => {
+                if (!root && configTablesMeta[t] && configTablesMeta[t].root && state.sttmData[t]) root = t;
+            });
+            if (!root) {
+                state.extractedTables.forEach(t => { if (!root && state.sttmData[t]) root = t; });
+            }
+            return root;
+        }
+
+        // Leading non-language key field - the join column for a cascade copy.
+        function primaryKeyOf(tbl) {
+            const parts = ((configTablesMeta[tbl] && configTablesMeta[tbl].pk) || '')
+                .split(',').map(s => s.trim()).filter(Boolean);
+            const business = parts.filter(p => p !== 'MANDT' && p !== 'SPRAS');
+            if (business.length) return business[0];
+            if (parts.length) return parts[0];
+            const rows = state.sttmData[tbl];
+            return rows && rows.length ? Object.keys(rows[0])[0] : '';
+        }
+
+        function describeRow(row) {
+            for (let i = 0; i < DESC_FIELDS.length; i++) {
+                if (row[DESC_FIELDS[i]]) return row[DESC_FIELDS[i]];
+            }
+            return 'Record';
+        }
+
+        function openCopyModal() {
+            const select = document.getElementById('modal-copy-source');
+            select.innerHTML = '';
+
+            const rootTable = resolveRootTable();
+            const context = document.getElementById('modal-copy-context');
+
+            if (rootTable && state.sttmData[rootTable]) {
+                const keyCol = primaryKeyOf(rootTable);
+                state.sttmData[rootTable].forEach(r => {
+                    const opt = document.createElement('option');
+                    opt.value = r[keyCol];
+                    opt.innerText = `${r[keyCol]} - ${describeRow(r)}`;
+                    select.appendChild(opt);
+                });
+                const deps = (configTablesMeta[rootTable].dependent || []).join(', ') || 'none';
+                context.innerText = `Root table ${rootTable} · key field ${keyCol} · cascades into: ${deps}`;
+            } else {
+                context.innerText = 'No staged table with records is available to copy from.';
+            }
+
+            document.getElementById('copyModal').classList.add('active');
+        }
+
+        function closeCopyModal() {
+            document.getElementById('copyModal').classList.remove('active');
+        }
+
+        function executeCascadeCopy() {
+            const srcKey = document.getElementById('modal-copy-source').value;
+            const targetKey = document.getElementById('modal-copy-target-key').value.toUpperCase().trim();
+            const targetDesc = document.getElementById('modal-copy-target-desc').value.trim();
+
+            if (!targetKey) {
+                alert("Please specify a target custom key!");
+                return;
+            }
+
+            const rootTable = resolveRootTable();
+            if (!rootTable) {
+                alert("No staged table with records is available to copy from.");
+                return;
+            }
+
+            // Copy the root record, then every dependent table that carries the
+            // same key field - one pass, whatever the root config object is.
+            const keyCol = primaryKeyOf(rootTable);
+            const chain = [rootTable].concat((configTablesMeta[rootTable] || {}).dependent || []);
+            let copied = 0;
+
+            chain.forEach(tbl => {
+                const rows = state.sttmData[tbl];
+                if (!rows || !rows.length || !(keyCol in rows[0])) return;
+
+                rows.filter(r => r[keyCol] === srcKey).forEach(src => {
+                    const clone = { ...src };
+                    clone[keyCol] = targetKey;
+                    if (targetDesc) {
+                        DESC_FIELDS.forEach(f => { if (f in clone) clone[f] = targetDesc; });
+                    }
+                    rows.push(clone);
+                    copied++;
+                });
+            });
+
+            closeCopyModal();
+            renderSilverGrid();
+            renderSilverAudit();
+
+            if (copied === 0) {
+                alert(`No records found for key ${srcKey} in ${rootTable} or its dependent tables.`);
+            }
+        }
+
+        function renderSilverAudit() {
+            const div = document.getElementById('silver-cascade-audit');
+            let html = '<div style="display:flex; flex-direction:column; gap:10px;">';
+
+            state.extractedTables.forEach(tbl => {
+                if (state.sttmData[tbl]) {
+                    html += `
+                        <div style="background:rgba(0,0,0,0.25); padding:10px; border-radius:6px; border-left:3px solid var(--accent-cyan);">
+                            <strong style="color:var(--accent-cyan);">${tbl} (${configTablesMeta[tbl]?.desc})</strong>
+                            <div style="font-size:0.75rem; color:var(--text-muted); margin-top:4px;">Staged Records Count: <b>${state.sttmData[tbl].length}</b></div>
+                            <ul style="font-size:0.75rem; margin-left:16px; margin-top:4px;">
+                                ${state.sttmData[tbl].slice(0, 6).map(r => `<li>Key: <b>${r[primaryKeyOf(tbl)]}</b> - ${describeRow(r)}</li>`).join('')}
+                                ${state.sttmData[tbl].length > 6 ? `<li style="color:var(--text-muted);">+ ${state.sttmData[tbl].length - 6} more record(s)</li>` : ''}
+                            </ul>
+                        </div>
+                    `;
+                }
+            });
+
+            html += '</div>';
+            div.innerHTML = html;
+        }
+
+        function promoteToGold() {
+            document.getElementById('nav-gold').classList.remove('disabled');
+            switchBucket('gold');
+            renderGoldPayload();
+        }
+
+        // ================= 3. GOLD ENGINE =================
+        function injectLateConfig() {
+            const key = document.getElementById('late-key-input').value.trim();
+            const val = document.getElementById('late-val-input').value.trim();
+
+            if (key && val) {
+                state.lateConfigs.push({ key, val });
+                document.getElementById('late-key-input').value = '';
+                document.getElementById('late-val-input').value = '';
+                logTerminal(`[Late Config Injected] Key: ${key}, Value: ${val}`);
+                renderGoldPayload();
+            }
+        }
+
+        function renderGoldPayload() {
+            const channel = document.getElementById('gold-channel-select').value;
+            const viewer = document.getElementById('gold-payload-viewer');
+            const title = document.getElementById('gold-payload-title');
+
+            if (channel === 'TR') {
+                title.innerText = "Generated SAP Customizing Transport Payload (E070/E071 Schema)";
+                viewer.innerText = JSON.stringify(generateTRSchema(), null, 2);
+            } else {
+                title.innerText = "Generated SAP Business Configuration Set Payload (.SCD XML Container)";
+                viewer.innerText = generateBCSetXML();
+            }
+        }
+
+        function generateTRSchema() {
+            return {
+                TR_HEADER: {
+                    TRKORR: "DEVK909412",
+                    AS4USER: "IMIGRATE_USER",
+                    CLIENT: state.companyCode,
+                    TENANT_ID: state.tenantId,
+                    TARGET_SYS: document.getElementById('gold-target-env').value,
+                    TEXT: "iMigrate Config Sync - Process Level TR"
+                },
+                E071_OBJECTS: Array.from(state.extractedTables).map(tbl => ({
+                    PGMID: "R3TR",
+                    OBJECT: "TABU",
+                    OBJ_NAME: tbl,
+                    OBJFUNC: "K",
+                    RECORDS: state.sttmData[tbl] ? state.sttmData[tbl].length : 0
+                })),
+                E071K_KEYS: Array.from(state.extractedTables).reduce((keys, tbl) => {
+                    const rows = state.sttmData[tbl];
+                    if (!rows) return keys;
+                    const kc = primaryKeyOf(tbl);
+                    rows.forEach(r => keys.push({
+                        MASTER_TABLE: tbl,
+                        TABKEY: `${state.companyCode}${r[kc]}`
+                    }));
+                    return keys;
+                }, []).concat(state.lateConfigs.map(l => ({ MASTER_TABLE: "LATE_INJECT", TABKEY: l.key })))
+            };
+        }
+
+        function generateBCSetXML() {
+            let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<BCSET_CONTAINER id="BCS_${state.tenantId}">\n`;
+            xml += `  <HEADER>\n    <SESSION_ID>${state.sessionId}</SESSION_ID>\n    <AUTHOR>iMigrate Engine</AUTHOR>\n  </HEADER>\n  <DATA_TABLES>\n`;
+
+            state.extractedTables.forEach(tbl => {
+                if (state.sttmData[tbl]) {
+                    xml += `    <TABLE name="${tbl}">\n`;
+                    state.sttmData[tbl].forEach(row => {
+                        xml += `      <ROW>\n`;
+                        Object.keys(row).forEach(k => {
+                            xml += `        <FIELD name="${k}">${row[k]}</FIELD>\n`;
+                        });
+                        xml += `      </ROW>\n`;
+                    });
+                    xml += `    </TABLE>\n`;
+                }
+            });
+
+            if (state.lateConfigs.length > 0) {
+                xml += `    <TABLE name="LATE_INJECTIONS">\n`;
+                state.lateConfigs.forEach(c => {
+                    xml += `      <ROW><FIELD name="KEY">${c.key}</FIELD><FIELD name="VAL">${c.val}</FIELD></ROW>\n`;
+                });
+                xml += `    </TABLE>\n`;
+            }
+
+            xml += `  </DATA_TABLES>\n</BCSET_CONTAINER>`;
+            return xml;
+        }
+
+        function executeGoldDeployment() {
+            const channel = document.getElementById('gold-channel-select').value;
+            const target = document.getElementById('gold-target-env').value;
+
+            logTerminal(`[Deployment Initiated] Preparing ${channel} payload for ${target}...`);
+            setTimeout(() => {
+                logTerminal(`[RFC Call] POST /sap/bcset/activate -> Connecting to client ${state.companyCode}...`);
+            }, 600);
+            setTimeout(() => {
+                logTerminal(`[Target Response] HTTP 200 OK. Configuration records successfully written to target database.`);
+                alert("Target Deployment Executed Successfully!");
+            }, 1300);
+        }
+
+        function logTerminal(msg) {
+            const term = document.getElementById('gold-terminal');
+            const line = document.createElement('div');
+            line.className = 'terminal-line';
+            line.innerHTML = `<span class="terminal-time">[${new Date().toLocaleTimeString()}]</span> ${msg}`;
+            term.appendChild(line);
+            term.scrollTop = term.scrollHeight;
+        }
+
+        // ================= SWITCH PIPELINE BUCKETS =================
+        function switchBucket(bucket) {
+            document.querySelectorAll('.bucket-view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+
+            document.getElementById(`view-${bucket}`).classList.add('active');
+            document.getElementById(`nav-${bucket}`).classList.add('active');
+            state.activeBucket = bucket;
+        }
+
+        // Window Startup Initialization
+        window.onload = () => {
+            handleSessionUpdate();
+            initTree();
+        };
+    </script>
+</body>
+</html>
